@@ -1,0 +1,37 @@
+version: 2.1
+
+executors:
+  python-executor:
+    docker:
+      - image: circleci/python:3.9  # Python 3.9 Docker image
+    working_directory: ~/project
+
+jobs:
+  test:
+    executor: python-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - venv-{{ checksum "requirements.txt" }}
+      - run:
+          name: Install Dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache:
+          paths:
+            - venv
+          key: venv-{{ checksum "requirements.txt" }}
+      - run:
+          name: Run Tests
+          command: |
+            . venv/bin/activate
+            pytest
+
+workflows:
+  version: 2
+  test-python-app:
+    jobs:
+      - test
